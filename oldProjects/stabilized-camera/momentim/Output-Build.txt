@@ -1,0 +1,10 @@
+1>------ Build started: Project: momentim, Configuration: Debug Win32 ------
+1>Compiling...
+1>momentim.cpp
+1>c:\opencv2.2\include\opencv2\flann\logger.h(66) : warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+1>        c:\program files (x86)\microsoft visual studio 9.0\vc\include\stdio.h(237) : see declaration of 'fopen'
+1>Linking...
+1>Embedding manifest...
+1>Build log was saved at "file://c:\Users\Roy\Documents\Visual Studio 2008\Projects\momentim\momentim\Debug\BuildLog.htm"
+1>momentim - 0 error(s), 1 warning(s)
+========== Build: 1 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========

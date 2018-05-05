@@ -1,0 +1,92 @@
+#include <16F887.h> 
+#fuses INTRC_IO,NOWDT,PUT,BROWNOUT,NOLVP 
+#use delay(clock=4M) 
+#use i2c(Master, sda=PIN_C4, scl=PIN_C3) 
+#use rs232(baud=9600, xmit=PIN_B7, rcv=PIN_B6, ERRORS) 
+
+#define SRF081_WRT_ADDR  0xE0 
+#define SRF081_RD_ADDR   0xE1 
+#define SRF082_WRT_ADDR  0xE0 
+#define SRF082_RD_ADDR   0xE1 
+
+int16 srf08_get_range(void); 
+int16 overflow_count;
+#int_timer1
+void timer1_isr() {
+   overflow_count++;
+}
+
+//======================= 
+void main() 
+{ 
+int16 result; 
+int32 time;
+int16 dis=4;
+setup_timer_1(T1_INTERNAL|T1_DIV_BY_1);
+enable_interrupts(int_timer1);
+while(TRUE) 
+  { 
+   result = srf08_get_range(); 
+   printf("Range in inch = %lu\n\r", result); 
+   delay_ms(50); 
+  enable_interrupts(global);
+  while(result>dis) {
+   output_low(PIN_B4);
+   printf("Range in inch = %lu\n\r",result);
+   set_timer1(0);
+   overflow_count=0;
+   output_high(PIN_E1);
+   delay_ms(2);
+   output_low(PIN_E1);
+   delay_ms(18);
+   result = srf08_get_range(); 
+  }
+  while(result<dis) {
+   output_low(PIN_E1);
+   printf("Range in inch = %lu\n\r",result);
+   output_high(PIN_B4);
+   delay_ms(2);
+   output_low(PIN_B4);
+   delay_ms(18);
+   disable_interrupts(global);
+   time = get_timer1();
+   time -= time + ((int32)overflow_count<<16);
+   time -= 15;
+   result = srf08_get_range(); 
+  } 
+
+} 
+}
+
+//======================== 
+
+int16 srf08_get_range(void) 
+{ 
+int8 lsb; 
+int8 msb; 
+int16 range; 
+
+// This 1st part sends the ranging command 
+// to the SRF08 to start it ranging. 
+i2c_start(); 
+i2c_write(SRF081_WRT_ADDR); 
+i2c_write(0);          
+i2c_write(80);  // The range will be returned in inches      
+i2c_stop();          
+
+// Now wait for the ranging to complete. 
+delay_ms(100);    // Must be 65 ms minimum.      
+
+// Finally get the range from the SRF08. 
+i2c_start(); 
+i2c_write(SRF081_WRT_ADDR); 
+i2c_write(2); 
+i2c_start();    
+i2c_write(SRF081_RD_ADDR); 
+msb = i2c_read();    
+lsb = i2c_read(0); 
+i2c_stop(); 
+
+range = make16(msb, lsb); 
+return(range); 
+}
